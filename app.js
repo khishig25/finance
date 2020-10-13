@@ -11,6 +11,7 @@ var uIController = (function () {
     incomeTotalLabel: ".budget__income--value",
     percentageLabel: ".budget__expenses--percentage",
     tusuvLabel: ".budget__value",
+    listDiv: ".container",
   };
   return {
     getInput: function () {
@@ -80,14 +81,14 @@ var uIController = (function () {
       // typaar ni salgahж тохиро газарт байрлуулна.
       if (type === "inc") {
         HTML =
-          '<div class="item clearfix" id="income-&ID&"><div class="item__description">&datahole&</div><div class="right clearfix"><div class="item__value">&value&</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+          '<div class="item clearfix" id="inc-&ID&"><div class="item__description">&datahole&</div><div class="right clearfix"><div class="item__value">&value&</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
         htmlClassId = domStings.incomeList;
         HTML = HTML.replace("&ID&", item.id);
         HTML = HTML.replace("&datahole&", item.description);
         HTML = HTML.replace("&value&", item.value);
       } else {
         HTML =
-          '<div class="item clearfix" id="expense-&ID&"><div class="item__description">&datahole&</div><div class="right clearfix"><div class="item__value">&value&</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
+          '<div class="item clearfix" id="exp-&ID&"><div class="item__description">&datahole&</div><div class="right clearfix"><div class="item__value">&value&</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
         htmlClassId = domStings.expenseList;
         HTML = HTML.replace("&ID&", item.id);
         HTML = HTML.replace("&datahole&", item.description);
@@ -112,14 +113,15 @@ var fininceController = (function () {
     this.description = description;
   };
 
-  var orlogoTootsoh = function (type) {
+  var calculateTotal = function (type) {
     var sum = 0;
     data.allItems[type].forEach(function (el) {
       sum = sum + el.value;
       console.log("төсөвөөё орлого луу SUM ni=", sum + "type", type);
-      data.totals[type] = sum;
+
       console.log("Toootals ", data.totals[type]);
     });
+    data.totals[type] = sum;
   };
   var data = {
     allItems: {
@@ -138,10 +140,10 @@ var fininceController = (function () {
       console.log("Төсөв тооцооллооо_-------------------");
 
       // Нийт орлогыг тооцоолно
-      orlogoTootsoh("inc");
+      calculateTotal("inc");
 
       //Нийт зарлагыг тоооцоолно.
-      orlogoTootsoh("exp");
+      calculateTotal("exp");
 
       // Төсөвийн дүн
       data.tusuv = data.totals.inc - data.totals.exp;
@@ -181,6 +183,20 @@ var fininceController = (function () {
 
       data.allItems[type].push(item);
       return item;
+    },
+
+    deleteItem: function (type, id) {
+      var ids = data.allItems[type].map(function (e) {
+        return e.id;
+      });
+
+      var index = ids.indexOf(id);
+      console.log("index ", index);
+      console.log("index of ", data.allItems[type][index]);
+      if (index !== -1) {
+      }
+      console.log("delete item fuction ids устгана", ids);
+      data.allItems[type].splice(index, 1);
     },
 
     seeData: function () {
@@ -235,6 +251,28 @@ var appController = (function (fininceController, uIController) {
         ctrAddItem();
       }
     });
+
+    document
+      .querySelector(DOM.listDiv)
+      .addEventListener("click", function (event) {
+        // console.log("click", event.target.id);
+        // console.log(event.target.parentNode);
+        // console.log(event.target.parentNode.parentNode);
+        // console.log(event.target.parentNode.parentNode.parentNode);
+        console.log(
+          event.target.parentNode.parentNode.parentNode.parentNode.id
+        );
+
+        var id = event.target.parentNode.parentNode.parentNode.parentNode.id;
+
+        if (id) {
+          var b = id.split("-");
+          var type = b[0];
+          var sentId = parseInt(b[1]);
+          console.log(b);
+          fininceController.deleteItem(type, sentId);
+        }
+      });
   };
   return {
     init: function () {
