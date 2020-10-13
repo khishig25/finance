@@ -6,6 +6,11 @@ var uIController = (function () {
     addBtn: ".add__btn",
     incomeList: ".income__list",
     expenseList: ".expenses__list",
+
+    expenseTotal: ".budget__expenses--value",
+    incomeTotalLabel: ".budget__income--value",
+    percentageLabel: ".budget__expenses--percentage",
+    tusuvLabel: ".budget__value",
   };
   return {
     getInput: function () {
@@ -42,6 +47,30 @@ var uIController = (function () {
       });
       // cursor iishee shiljine
       fieldsArr[0].focus();
+    },
+
+    showDesplay: function (damjuulahUtga) {
+      // return {
+      //   huvi: data.huvi,
+      //   tusuv: data.tusuv,
+      //   totalExp: data.totals.exp,
+      //   totalInc: data.totals.inc,
+      // };
+      document.querySelector(domStings.tusuvLabel).textContent =
+        damjuulahUtga.tusuv;
+
+      document.querySelector(domStings.incomeTotalLabel).textContent =
+        damjuulahUtga.totalInc;
+
+      document.querySelector(domStings.expenseTotal).textContent =
+        damjuulahUtga.totalExp;
+      if (damjuulahUtga.huvi !== 0) {
+        document.querySelector(domStings.percentageLabel).textContent =
+          damjuulahUtga.huvi + "%";
+      } else {
+        document.querySelector(domStings.percentageLabel).textContent =
+          damjuulahUtga.huvi;
+      }
     },
     addListItem: function (item, type) {
       var HTML;
@@ -87,7 +116,7 @@ var fininceController = (function () {
     var sum = 0;
     data.allItems[type].forEach(function (el) {
       sum = sum + el.value;
-      console.log("төсөвөөё орлого луу SUM ni=", sum, +"type", type);
+      console.log("төсөвөөё орлого луу SUM ni=", sum + "type", type);
       data.totals[type] = sum;
       console.log("Toootals ", data.totals[type]);
     });
@@ -131,6 +160,7 @@ var fininceController = (function () {
         totalInc: data.totals.inc,
       };
     },
+
     addItem: function (type, val, desc) {
       console.log("Item added......");
       var item;
@@ -168,7 +198,9 @@ var appController = (function (fininceController, uIController) {
     //console.log(input);
 
     //Оролт хоосон эсэхийг шалгаж байна
-    if (input.description !== "" && input.value !== "") {
+    //if (input.description !== "" && input.value !== "")
+    if (input.description !== "" && isNaN(input.value) !== true) {
+      console.log("sadaakaaa", input.value);
       var item = fininceController.addItem(
         input.type,
         input.description,
@@ -179,13 +211,14 @@ var appController = (function (fininceController, uIController) {
 
       uIController.addListItem(item, str);
       uIController.clearFields();
-    }
+      // 3. olj avsan ogogdol tohiroh hesegt gargana.
+      // 4. төсөвийг тооцоолнов
+      fininceController.tusuvTootsooloh();
+      // 5. эцэсийн үлдэгдэл харуулна
+      var damjuulahUtga = fininceController.uldegdeluudAvah();
 
-    // 3. olj avsan ogogdol tohiroh hesegt gargana.
-    // 4. төсөвийг тооцоолнов
-    fininceController.tusuvTootsooloh();
-    // 5. эцэсийн үлдэгдэл харуулна
-    fininceController.uldegdeluudAvah();
+      uIController.showDesplay(damjuulahUtga);
+    }
   };
   ///-------------event huleeh
 
@@ -207,6 +240,17 @@ var appController = (function (fininceController, uIController) {
     init: function () {
       setupEventListners();
       console.log("Яг эхэллээ....6");
+      // huvi: data.huvi,
+      //   tusuv: data.tusuv,
+      //   totalExp: data.totals.exp,
+      //   totalInc: data.totals.inc,
+
+      uIController.showDesplay({
+        huvi: 0,
+        tusuv: 0,
+        totalExp: 0,
+        totalInc: 0,
+      });
     },
   };
 })(fininceController, uIController);
