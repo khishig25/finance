@@ -4,13 +4,15 @@ var uIController = (function () {
     inputDescription: ".add__description",
     inputValue: ".add__value",
     addBtn: ".add__btn",
+    incomeList: ".income__list",
+    expenseList: ".expenses__list",
   };
   return {
     getInput: function () {
       return {
         type: document.querySelector(domStings.inputType).value,
         description: document.querySelector(domStings.inputDescription).value,
-        value: document.querySelector(domStings.inputValue).value,
+        value: parseInt(document.querySelector(domStings.inputValue).value),
 
         //
       };
@@ -18,29 +20,51 @@ var uIController = (function () {
     getDomStrings: function () {
       return domStings;
     },
+
+    // оролт цэвэрлэх функц-------------------
+    clearFields: function () {
+      // нэг дор селект
+      var fields = document.querySelectorAll(
+        domStings.inputDescription + "," + domStings.inputValue
+      ); // лист ирнэ.
+      console.log(fields);
+      // листийг массив хувиргах slice()herchih iin call()
+      var fieldsArr = Array.prototype.slice.call(fields); //massiv bhgu uchiraas etsegees ni duudaj bgan bn
+      console.log(fieldsArr);
+
+      // for (i = 0; i < fieldsArr.length; i++) {
+      //   fields[i].description = "";
+      //   fields[i].value = "";
+      // } bas ingej bolno
+      fields.forEach(function (ele, indx, fields) {
+        ele.description = "";
+        ele.value = "";
+      });
+      // cursor iishee shiljine
+      fieldsArr[0].focus();
+    },
     addListItem: function (item, type) {
       var HTML;
       var htmlClassId;
       console.log("item----", item.description + "type--", type);
 
-      // typaar ni salgah
+      // typaar ni salgahж тохиро газарт байрлуулна.
       if (type === "inc") {
         HTML =
           '<div class="item clearfix" id="income-&ID&"><div class="item__description">&datahole&</div><div class="right clearfix"><div class="item__value">&value&</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
-        htmlClassId = ".income__list";
+        htmlClassId = domStings.incomeList;
         HTML = HTML.replace("&ID&", item.id);
         HTML = HTML.replace("&datahole&", item.description);
         HTML = HTML.replace("&value&", item.value);
       } else {
         HTML =
           '<div class="item clearfix" id="expense-&ID&"><div class="item__description">&datahole&</div><div class="right clearfix"><div class="item__value">&value&</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
-        htmlClassId = ".expenses__list";
+        htmlClassId = domStings.expenseList;
         HTML = HTML.replace("&ID&", item.id);
         HTML = HTML.replace("&datahole&", item.description);
         HTML = HTML.replace("&value&", item.value);
       }
 
-      HTML.replace("&ID&", "id");
       document.querySelector(htmlClassId).insertAdjacentHTML("beforeend", HTML);
     },
   };
@@ -58,6 +82,16 @@ var fininceController = (function () {
     this.value = value;
     this.description = description;
   };
+
+  var orlogoTootsoh = function (type) {
+    var sum = 0;
+    data.allItems[type].forEach(function (el) {
+      sum = sum + el.value;
+      console.log("төсөвөөё орлого луу SUM ni=", sum, +"type", type);
+      data.totals[type] = sum;
+      console.log("Toootals ", data.totals[type]);
+    });
+  };
   var data = {
     allItems: {
       inc: [],
@@ -67,8 +101,36 @@ var fininceController = (function () {
       inc: 0,
       exp: 0,
     },
+    tusuv: 0,
+    huvi: 0,
   };
   return {
+    tusuvTootsooloh: function () {
+      console.log("Төсөв тооцооллооо_-------------------");
+
+      // Нийт орлогыг тооцоолно
+      orlogoTootsoh("inc");
+
+      //Нийт зарлагыг тоооцоолно.
+      orlogoTootsoh("exp");
+
+      // Төсөвийн дүн
+      data.tusuv = data.totals.inc - data.totals.exp;
+      console.log("data.tusuv ", data.tusuv);
+
+      //Зарлагын Хувь тооцоолоно.
+      data.huvi = Math.round((data.totals.exp / data.totals.inc) * 100);
+
+      console.log("Зарлагын Хувь нь  %%", data.huvi);
+    },
+    uldegdeluudAvah: function () {
+      return {
+        huvi: data.huvi,
+        tusuv: data.tusuv,
+        totalExp: data.totals.exp,
+        totalInc: data.totals.inc,
+      };
+    },
     addItem: function (type, val, desc) {
       console.log("Item added......");
       var item;
@@ -104,18 +166,26 @@ var appController = (function (fininceController, uIController) {
     // 1.oruulAh ogogdol olj avna
     var input = uIController.getInput();
     //console.log(input);
-    var item = fininceController.addItem(
-      input.type,
-      input.description,
-      input.value
-    );
-    var str = input.type;
-    // 2.olj avsan ogogdloo sankhuud damjuulj hadgalna.
 
-    uIController.addListItem(item, str);
+    //Оролт хоосон эсэхийг шалгаж байна
+    if (input.description !== "" && input.value !== "") {
+      var item = fininceController.addItem(
+        input.type,
+        input.description,
+        input.value
+      );
+      var str = input.type;
+      // 2.olj avsan ogogdloo sankhuud damjuulj hadgalna.
+
+      uIController.addListItem(item, str);
+      uIController.clearFields();
+    }
+
     // 3. olj avsan ogogdol tohiroh hesegt gargana.
     // 4. төсөвийг тооцоолнов
+    fininceController.tusuvTootsooloh();
     // 5. эцэсийн үлдэгдэл харуулна
+    fininceController.uldegdeluudAvah();
   };
   ///-------------event huleeh
 
