@@ -12,8 +12,88 @@ var uIController = (function () {
     percentageLabel: ".budget__expenses--percentage",
     tusuvLabel: ".budget__value",
     listDiv: ".container",
+    itemPercentage: ".item__percentage",
+
+    ognoo: ".budget__title--month",
   };
+
+  var nodeListForeach = function (nodeList, callback) {
+    for (var i = 0; i < nodeList.length; i++) {
+      callback(nodeList[i], i);
+    }
+  };
+
+  var formatMoney = function (too, type) {
+    too = "" + too; // төрөл хувиргаь 123 "123"
+    var x = too
+      .split("") //["1","2","3"]
+      .reverse() //["3","2","1"]
+      .join(""); //"321"
+
+    var y = "";
+    var count = 1;
+
+    for (var i = 0; i < x.length; i++) {
+      y = y + x[i];
+
+      if (count % 3 === 0) y = y + "'";
+      count++;
+    }
+
+    var z = y.split("").reverse().join("");
+
+    if (z[0] === "'") z = z.substr(1, z.length - 1);
+
+    if (type === "inc") z = "+ " + z;
+    else z = "- " + z;
+
+    return z;
+  };
+
   return {
+    displayDate: function () {
+      var onoodor = new Date();
+      document.querySelector(domStings.ognoo).textContent =
+        onoodor.getFullYear() + " оны " + onoodor.getMonth() + " сар ";
+    },
+
+    changeType: function () {
+      var fields = document.querySelectorAll(
+        domStings.inputType +
+          ", " +
+          domStings.inputDescription +
+          ", " +
+          domStings.inputValue
+      );
+
+      nodeListForeach(fields, function (el) {
+        el.classList.toggle("red-focus");
+      });
+
+      document.querySelector(domStings.addBtn).classList.toggle("red");
+      // location = "http://1234.mn/course";
+    },
+
+    // changeType: function () {
+    //   var fields = document.querySelectorAll(
+    //     domStings.inputType +
+    //       "," +
+    //       domStings.inputDescription +
+    //       "," +
+    //       domStings.inputValue
+    //   );
+    //   console.log(fields);
+    //   // nodeListForeach(fields, function (el) {
+    //   //   el.classList.toggle("red-focus");
+    //   // });
+
+    //   // document.querySelector(domStings.addBtn).classList.toggle("red");
+    //   console.log(
+    //     "oooooooooooo",
+    //     document.querySelector(domStings.addBtn).classList
+    //   );
+    // },
+
     getInput: function () {
       return {
         type: document.querySelector(domStings.inputType).value,
@@ -25,6 +105,16 @@ var uIController = (function () {
     },
     getDomStrings: function () {
       return domStings;
+    },
+
+    displayPercentages: function (allPersentagesArray) {
+      var percentageElements = document.querySelectorAll(
+        domStings.itemPercentage
+      );
+      nodeListForeach(percentageElements, function (el, index) {
+        // el eer domiin element orj irj bgaa geed
+        el.textContent = allPersentagesArray[index];
+      });
     },
 
     // оролт цэвэрлэх функц-------------------
@@ -57,14 +147,19 @@ var uIController = (function () {
       //   totalExp: data.totals.exp,
       //   totalInc: data.totals.inc,
       // };
-      document.querySelector(domStings.tusuvLabel).textContent =
-        damjuulahUtga.tusuv;
+      document.querySelector(domStings.tusuvLabel).textContent = formatMoney(
+        damjuulahUtga.tusuv,
+        "inc"
+      );
 
-      document.querySelector(domStings.incomeTotalLabel).textContent =
-        damjuulahUtga.totalInc;
+      document.querySelector(
+        domStings.incomeTotalLabel
+      ).textContent = formatMoney(damjuulahUtga.totalInc, "inc");
 
-      document.querySelector(domStings.expenseTotal).textContent =
-        damjuulahUtga.totalExp;
+      document.querySelector(domStings.expenseTotal).textContent = formatMoney(
+        damjuulahUtga.totalExp,
+        "exp"
+      );
       if (damjuulahUtga.huvi !== 0 && isNaN(damjuulahUtga.huvi) !== true) {
         document.querySelector(domStings.percentageLabel).textContent =
           damjuulahUtga.huvi + "%";
@@ -93,14 +188,14 @@ var uIController = (function () {
         htmlClassId = domStings.incomeList;
         HTML = HTML.replace("&ID&", item.id);
         HTML = HTML.replace("&datahole&", item.description);
-        HTML = HTML.replace("&value&", item.value);
+        HTML = HTML.replace("&value&", formatMoney(item.value, type));
       } else {
         HTML =
           '<div class="item clearfix" id="exp-&ID&"><div class="item__description">&datahole&</div><div class="right clearfix"><div class="item__value">&value&</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>';
         htmlClassId = domStings.expenseList;
         HTML = HTML.replace("&ID&", item.id);
         HTML = HTML.replace("&datahole&", item.description);
-        HTML = HTML.replace("&value&", item.value);
+        HTML = HTML.replace("&value&", formatMoney(item.value, type));
       }
 
       document.querySelector(htmlClassId).insertAdjacentHTML("beforeend", HTML);
@@ -108,7 +203,7 @@ var uIController = (function () {
   };
   //console.log("hello");
 })();
-
+//+++++++++++++++++++++++++++++      С А Н Х Ү Ү Г И Й Н   М О Д У Л Ь   +++++++++++++++++++++++++++
 var fininceController = (function () {
   var Income = function (id, description, value) {
     this.id = id;
@@ -119,8 +214,16 @@ var fininceController = (function () {
     this.id = id;
     this.value = value;
     this.description = description;
+    this.percentages = -1;
   };
-
+  Expense.prototype.calcPercentage = function (incomeTotal) {
+    if (incomeTotal > 0) {
+      this.percentages = Math.round((this.value / incomeTotal) * 100);
+    } else this.percentages = 0;
+  };
+  Expense.prototype.getPercentage = function () {
+    return this.percentages;
+  };
   var calculateTotal = function (type) {
     var sum = 0;
     data.allItems[type].forEach(function (el) {
@@ -214,6 +317,22 @@ var fininceController = (function () {
       data.allItems[type].splice(index, 1);
     },
 
+    calculatePercentages: function () {
+      data.allItems.exp.forEach(function (el) {
+        el.calcPercentage(data.totals.inc);
+      });
+    },
+
+    getPercentages: function () {
+      var allPersentages = data.allItems.exp.map(function (el) {
+        //
+        //
+        // console.log("getPercentages iin butsaah utga", allPersentages);
+        return el.getPercentage();
+      });
+      return allPersentages; //massive butsaj bgaa
+    },
+
     seeData: function () {
       return data;
     },
@@ -254,6 +373,18 @@ var appController = (function (fininceController, uIController) {
     var damjuulahUtga = fininceController.uldegdeluudAvah();
 
     uIController.showDesplay(damjuulahUtga);
+
+    // хувийг тооцооллуулна
+    fininceController.calculatePercentages();
+
+    // хувийг авна
+    var allPersentagesArray = fininceController.getPercentages();
+
+    // haruulah
+    var allPersentagesArray = fininceController.getPercentages();
+
+    uIController.displayPercentages(allPersentagesArray);
+    console.log(allPersentagesArray, "   all persentageArray");
   };
   ///-------------event huleeh
 
@@ -270,6 +401,13 @@ var appController = (function (fininceController, uIController) {
         ctrAddItem();
       }
     });
+    // document
+    //   .querySelector(DOM.inputType)
+    //   .addEventListener("change", uiController.changeType()); ingej duuduud ajllagui
+    document
+      .querySelector(DOM.inputType)
+      .addEventListener("change", uIController.changeType);
+
     // html ээс устгах үзэгдлийг барих
     document
       .querySelector(DOM.listDiv)
@@ -298,8 +436,8 @@ var appController = (function (fininceController, uIController) {
   };
   return {
     init: function () {
-      setupEventListners();
       console.log("Яг эхэллээ....6");
+      uIController.displayDate();
       // huvi: data.huvi,
       //   tusuv: data.tusuv,
       //   totalExp: data.totals.exp,
@@ -311,6 +449,7 @@ var appController = (function (fininceController, uIController) {
         totalExp: 0,
         totalInc: 0,
       });
+      setupEventListners();
     },
   };
 })(fininceController, uIController);
