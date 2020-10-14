@@ -65,13 +65,21 @@ var uIController = (function () {
 
       document.querySelector(domStings.expenseTotal).textContent =
         damjuulahUtga.totalExp;
-      if (damjuulahUtga.huvi !== 0) {
+      if (damjuulahUtga.huvi !== 0 && isNaN(damjuulahUtga.huvi) !== true) {
         document.querySelector(domStings.percentageLabel).textContent =
           damjuulahUtga.huvi + "%";
+      } else if (isNaN(damjuulahUtga.huvi) === true) {
       } else {
         document.querySelector(domStings.percentageLabel).textContent =
           damjuulahUtga.huvi;
       }
+    },
+    // web ээс лшыт устгах
+    deleteListItem: function (id) {
+      //parent дээр нь хүүгээ устгадаг функц байдаг
+      var el = document.getElementById(id);
+      // эцэгийг нь дуудаад түүн дээрээс нь removeChildiig дуудаад элементээ өөрийг нь буцааж дамжуулаад устгуулчлаа.
+      el.parentNode.removeChild(el);
     },
     addListItem: function (item, type) {
       var HTML;
@@ -150,9 +158,13 @@ var fininceController = (function () {
       console.log("data.tusuv ", data.tusuv);
 
       //Зарлагын Хувь тооцоолоно.
-      data.huvi = Math.round((data.totals.exp / data.totals.inc) * 100);
+      if (data.totals.inc !== 0) {
+        data.huvi = Math.round((data.totals.exp / data.totals.inc) * 100);
 
-      console.log("Зарлагын Хувь нь  %%", data.huvi);
+        console.log("Зарлагын Хувь нь  %%", data.huvi);
+      } else {
+        data.huvi = 0;
+      }
     },
     uldegdeluudAvah: function () {
       return {
@@ -186,16 +198,19 @@ var fininceController = (function () {
     },
 
     deleteItem: function (type, id) {
+      // map функц нь массиваар гүйгээд элемэнтийг олоод массиваар буцаана.
       var ids = data.allItems[type].map(function (e) {
         return e.id;
       });
-
+      //орж ирэх утгыг массиваас хайж индексийг нь олж байна.
       var index = ids.indexOf(id);
       console.log("index ", index);
       console.log("index of ", data.allItems[type][index]);
+      // indexOf ni хайсан утга байхгүй бол -1 г буцаадаг. -1 байвар scplice функц нь сүүлийн элемэнтийг устгадаг учир шалгах хэрэгтэй.
       if (index !== -1) {
       }
       console.log("delete item fuction ids устгана", ids);
+      // олоод устгаж байна
       data.allItems[type].splice(index, 1);
     },
 
@@ -229,12 +244,16 @@ var appController = (function (fininceController, uIController) {
       uIController.clearFields();
       // 3. olj avsan ogogdol tohiroh hesegt gargana.
       // 4. төсөвийг тооцоолнов
-      fininceController.tusuvTootsooloh();
-      // 5. эцэсийн үлдэгдэл харуулна
-      var damjuulahUtga = fininceController.uldegdeluudAvah();
-
-      uIController.showDesplay(damjuulahUtga);
+      updateTusuv();
     }
+  };
+
+  var updateTusuv = function () {
+    fininceController.tusuvTootsooloh();
+    // 5. эцэсийн үлдэгдэл харуулна
+    var damjuulahUtga = fininceController.uldegdeluudAvah();
+
+    uIController.showDesplay(damjuulahUtga);
   };
   ///-------------event huleeh
 
@@ -251,7 +270,7 @@ var appController = (function (fininceController, uIController) {
         ctrAddItem();
       }
     });
-
+    // html ээс устгах үзэгдлийг барих
     document
       .querySelector(DOM.listDiv)
       .addEventListener("click", function (event) {
@@ -262,15 +281,18 @@ var appController = (function (fininceController, uIController) {
         console.log(
           event.target.parentNode.parentNode.parentNode.parentNode.id
         );
-
+        // exp-1 inc-1 ийм хэлбэртэй класс id ирнэ
         var id = event.target.parentNode.parentNode.parentNode.parentNode.id;
 
+        //ӨӨР газар дарвал юу ч хйихгүй байхыг шалгаж байна.
         if (id) {
           var b = id.split("-");
           var type = b[0];
           var sentId = parseInt(b[1]);
           console.log(b);
           fininceController.deleteItem(type, sentId);
+          uIController.deleteListItem(id);
+          updateTusuv();
         }
       });
   };
